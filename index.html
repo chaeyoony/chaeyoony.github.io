@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>포트폴리오 관리자 | 채윤</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #f0f9ff; color: #1a4f6e; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    header { background: white; border-bottom: 1.5px solid #c9eef8; padding: 0 1.5rem; height: 58px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; box-shadow: 0 2px 10px rgba(91,173,212,0.12); z-index: 100; }
+    .header-title { font-weight: 800; font-size: 1.05rem; color: #1a4f6e; display: flex; align-items: center; gap: 0.5rem; }
+    .header-actions { display: flex; gap: 0.6rem; align-items: center; }
+
+    .btn { padding: 0.42rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.18s; font-family: inherit; }
+    .btn-primary  { background: #1a7fbf; color: white; }
+    .btn-primary:hover { background: #1565a0; }
+    .btn-secondary { background: #e6f5fb; color: #1a4f6e; border: 1.5px solid #c9eef8; }
+    .btn-secondary:hover { background: #c9eef8; }
+    .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .btn-success:hover { background: #a7f3d0; }
+    .btn-sm { padding: 0.28rem 0.65rem; font-size: 0.78rem; }
+    .btn-purple { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
+    .btn-purple:hover { background: #ddd6fe; }
+
+    .app-layout { display: flex; flex: 1; overflow: hidden; }
+
+    .sidebar { width: 196px; background: white; border-right: 1.5px solid #c9eef8; padding: 1rem 0; overflow-y: auto; flex-shrink: 0; }
+    .sidebar-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; color: #a0c4d8; padding: 0 1.1rem; margin-bottom: 0.4rem; margin-top: 1.1rem; text-transform: uppercase; }
+    .sidebar-label:first-child { margin-top: 0; }
+    .sidebar-item { display: flex; align-items: center; gap: 0.55rem; padding: 0.65rem 1.1rem; cursor: pointer; font-size: 0.88rem; color: #2a6e8a; transition: all 0.15s; border-right: 3px solid transparent; }
+    .sidebar-item:hover { background: #f0f9ff; }
+    .sidebar-item.active { background: #e6f5fb; color: #1a4f6e; font-weight: 700; border-right-color: #1a7fbf; }
+
+    .main-content { flex: 1; overflow-y: auto; padding: 2rem 2.2rem; }
+    .section-editor { max-width: 800px; }
+    .section-editor-title { font-size: 1.25rem; font-weight: 800; color: #1a4f6e; margin-bottom: 0.3rem; }
+    .section-editor-desc { font-size: 0.83rem; color: #5badd4; margin-bottom: 1.8rem; }
+
+    .card { background: white; border: 1.5px solid #c9eef8; border-radius: 12px; padding: 1.15rem 1.25rem; margin-bottom: 1rem; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.7rem; border-bottom: 1px solid #e6f5fb; }
+    .card-title { font-weight: 700; font-size: 0.93rem; color: #1a4f6e; }
+    .card-actions { display: flex; gap: 0.45rem; }
+
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group:last-child { margin-bottom: 0; }
+    .form-label { display: block; font-size: 0.79rem; font-weight: 700; color: #2a6e8a; margin-bottom: 0.35rem; }
+    input[type="text"], input[type="number"], input[type="url"], textarea, select { width: 100%; padding: 0.55rem 0.8rem; border: 1.5px solid #c9eef8; border-radius: 8px; font-size: 0.88rem; color: #1a4f6e; font-family: inherit; background: white; transition: border-color 0.15s; }
+    input[type="text"]:focus, textarea:focus, select:focus, input[type="url"]:focus { outline: none; border-color: #5badd4; }
+    textarea { resize: vertical; min-height: 72px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+
+    .list-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 0.9rem; background: #f0f9ff; border: 1px solid #c9eef8; border-radius: 8px; margin-bottom: 0.45rem; }
+    .list-item-content { flex: 1; min-width: 0; }
+    .list-item-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
+
+    .add-btn { display: flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%; padding: 0.6rem; border: 2px dashed #c9eef8; border-radius: 10px; background: transparent; color: #5badd4; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 0.4rem; font-family: inherit; }
+    .add-btn:hover { border-color: #5badd4; background: #f0f9ff; color: #1a7fbf; }
+
+    .range-row { display: flex; align-items: center; gap: 0.8rem; }
+    .range-row input[type="range"] { flex: 1; accent-color: #1a7fbf; padding: 0; border: none; }
+    .range-val { width: 38px; text-align: center; font-weight: 700; color: #1a7fbf; font-size: 0.88rem; flex-shrink: 0; }
+    .gauge-preview { height: 7px; background: #c9eef8; border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+    .gauge-preview-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1a7fbf, #6cc6e8); transition: width 0.25s; }
+
+    .ci-editor { background: #f8fcff; border: 1px solid #d8eef8; border-radius: 8px; margin-bottom: 0.45rem; overflow: hidden; }
+    .ci-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.58rem 0.85rem; cursor: pointer; user-select: none; }
+    .ci-header:hover { background: #eef7fd; }
+    .ci-title { flex: 1; font-size: 0.86rem; font-weight: 600; color: #1a4f6e; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ci-year  { font-size: 0.78rem; color: #5badd4; font-weight: 400; flex-shrink: 0; }
+    .ci-body  { padding: 0 0.85rem 0.85rem; display: none; }
+    .ci-body.open { display: block; }
+    .ci-chevron { font-size: 0.75rem; color: #a0c4d8; flex-shrink: 0; transition: transform 0.2s; }
+    .ci-header.open .ci-chevron { transform: rotate(180deg); }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-bottom: 0.5rem; }
+    .tag-chip { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.18rem 0.6rem; border-radius: 999px; font-size: 0.76rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+    .tag-chip:hover { opacity: 0.7; }
+    .tag-chip-blue   { background: #dbeafe; color: #1d4ed8; }
+    .tag-chip-green  { background: #d1fae5; color: #065f46; }
+    .tag-chip-purple { background: #ede9fe; color: #5b21b6; }
+    .tag-chip-orange { background: #ffedd5; color: #9a3412; }
+
+    .tab-row { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; }
+
+    .info-banner { background: #e6f5fb; border: 1px solid #b8dff0; border-radius: 10px; padding: 0.8rem 1rem; font-size: 0.83rem; color: #2a6e8a; margin-bottom: 1.4rem; display: flex; align-items: flex-start; gap: 0.45rem; line-height: 1.6; }
+
+    .dl-steps { background: white; border: 1.5px solid #c9eef8; border-radius: 12px; padding: 1.3rem 1.5rem; margin-bottom: 1.5rem; }
+    .dl-steps h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; color: #1a4f6e; }
+    .dl-step { display: flex; gap: 0.7rem; align-items: flex-start; margin-bottom: 0.7rem; font-size: 0.87rem; color: #2a6e8a; line-height: 1.6; }
+    .dl-step:last-child { margin-bottom: 0; }
+    .step-num { width: 22px; height: 22px; border-radius: 50%; background: #1a7fbf; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; margin-top: 0.15rem; }
+    code { background: #e6f5fb; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.82rem; font-family: monospace; }
+
+    /* 모달 블록 에디터 */
+    .modal-editor { background: #f5f0ff; border: 1.5px solid #ddd6fe; border-radius: 10px; padding: 1rem; margin-top: 0.8rem; }
+    .modal-editor-title { font-size: 0.8rem; font-weight: 700; color: #5b21b6; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
+    .block-item { background: white; border: 1px solid #e9d5ff; border-radius: 8px; padding: 0.8rem; margin-bottom: 0.5rem; }
+    .block-type-badge { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 4px; margin-bottom: 0.5rem; }
+    .bt-subtitle  { background: #dbeafe; color: #1d4ed8; }
+    .bt-paragraph { background: #f0fdf4; color: #065f46; }
+    .bt-bullets   { background: #fef3c7; color: #92400e; }
+    .bt-image     { background: #fce7f3; color: #9d174d; }
+    .bt-link      { background: #ede9fe; color: #5b21b6; }
+    .block-actions { display: flex; gap: 0.3rem; float: right; margin-top: -0.1rem; }
+
+    .img-preview { max-width: 100%; max-height: 120px; border-radius: 6px; margin-top: 0.5rem; border: 1px solid #e9d5ff; }
+
+    .toast { position: fixed; bottom: 1.8rem; right: 1.8rem; background: #1a4f6e; color: white; padding: 0.65rem 1.2rem; border-radius: 10px; font-size: 0.87rem; font-weight: 600; z-index: 9999; pointer-events: none; opacity: 0; transform: translateY(10px); transition: all 0.28s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .divider { height: 1px; background: #e6f5fb; margin: 1.2rem 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">🏊 포트폴리오 관리자</div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="resetData()">↺ 초기화</button>
+    <button class="btn btn-success"   onclick="saveToLocal()">💾 저장</button>
+    <button class="btn btn-primary"   onclick="triggerDownload()">⬇ HTML 다운로드</button>
+  </div>
+</header>
+
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-label">섹션 편집</div>
+    <div class="sidebar-item active" id="tab-hero"      onclick="showSection('hero')">👋 소개 (Hero)</div>
+    <div class="sidebar-item"        id="tab-career"    onclick="showSection('career')">💼 경력</div>
+    <div class="sidebar-item"        id="tab-skills"    onclick="showSection('skills')">🛠 스킬 · 자격</div>
+    <div class="sidebar-item"        id="tab-education" onclick="showSection('education')">🎓 학력</div>
+    <div class="sidebar-item"        id="tab-projects"  onclick="showSection('projects')">🌟 프로젝트</div>
+    <div class="sidebar-item"        id="tab-publications" onclick="showSection('publications')">📚 발간물</div>
+    <div class="sidebar-label">내보내기</div>
+    <div class="sidebar-item"        id="tab-download"  onclick="showSection('download')">⬇ HTML 내보내기</div>
+  </nav>
+  <main class="main-content" id="main"></main>
+</div>
+
+<input type="file" id="file-input"  accept=".html"  style="display:none" onchange="handleFile(event)">
+<input type="file" id="img-upload" accept="image/*" style="display:none" onchange="handleImgUpload(event)">
+<input type="file" id="cover-img-upload" accept="image/*" style="display:none" onchange="handleCoverImgUpload(event)">
+<input type="file" id="pub-thumb-upload" accept="image/*" style="display:none" onchange="handlePubThumbUpload(event)">
+<input type="file" id="pub-pdf-upload" accept="application/pdf" style="display:none" onchange="handlePubPdfUpload(event)">
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   DEFAULT DATA
+   ============================================================ */
+const DEFAULT = {
+  hero: {
+    name: '김채윤',
+    subtitle: '데이터 분석가 지망생 · 사회이슈 데이터 분석',
+    badges: [
+      { color:'blue',   text:'📊 SQL · Python · R' },
+      { color:'green',  text:'🏢 5년 경력 (2021~현재)' },
+      { color:'purple', text:'🎓 통계데이터과학과 재학중' }
+    ],
+    quoteTitle: '고민하며, 자신의 속도대로 나아가는 것을 중요하게 생각합니다.',
+    quoteParagraphs: [
+      '누군가에게 따뜻함을 전하는 것이 좋아 한 때 호텔리어를 꿈꿨고, 따뜻함을 전하는 대상에 대해 고민하다 인권 관련 일을 시작했습니다.',
+      '사람들은 어떤 생각을 하고, 어떻게 행동하는지를 알고 싶어 데이터 분석을 공부했습니다. 사회문제를 데이터로 파악하고 해석하는 것을 좋아하고, 텍스트 마이닝, 자연어 처리, 빅데이터 분석에 관심이 있습니다.'
+    ]
+  },
+  career: [
+    {
+      org: '서울시립 다시함께상담센터 — 감시사업팀',
+      period: '2021년 5월 — 현재 (약 5년)',
+      items: [
+        { title:'AI 보안관 및 안심아이(EYE) 담당',               year:'2026~현재', badge:'none', detail:'' },
+        { title:'반성매매 시민참여 플랫폼 담당',                  year:'2025',       badge:'none', detail:'홈페이지 리뉴얼 기획 · GA 통계 도입' },
+        { title:'성매매 알선 관련자 고발/신고 담당',               year:'2024~2025',  badge:'new',  detail:'DB 기획 및 제작 · DB 관리자 페이지 기획 · DB 통계 페이지 제작' },
+        { title:'온라인 매개 성매매 모니터링 담당',                year:'2022~현재',  badge:'data', detail:'토론회 기획 및 진행 · 키워드 분석 자동화 프로그램 제작' },
+        { title:'성매매업소 밀집지역 현장조사 담당',               year:'2021',       badge:'none', detail:'결과보고 자료집 책자 제작 · 구의회 제출 자료집 제작' },
+        { title:"시민 조직화 사업 '시민활동단 왓칭유' 담당",       year:'2021~2023',  badge:'none', detail:'캠페인 기획 및 운영 · 시민활동 기획 및 운영' }
+      ]
+    },
+    {
+      org: '서울시립 다시함께상담센터 — 행정지원팀',
+      period: '2021년 1월 — 2021년 5월',
+      items: [
+        { title:'행정 지원 사무 보조', year:'2021', badge:'none', detail:'' }
+      ]
+    }
+  ],
+  skills: {
+    gauges: [
+      { name:'🗄 SQL',    level:'Advanced', isLearning:false, desc:'HackerRank 인증 · 데이터리안 SQL 캠프 수료', width:88 },
+      { name:'🐍 Python', level:'학습중',    isLearning:true,  desc:'코드잇(codeit) 수료 · 생성형 AI 활용 키워드 분석 자동화 프로그램 개발', width:38 },
+      { name:'📊 R',      level:'학습중',    isLearning:true,  desc:'통계 분석 및 데이터 시각화 기초', width:30 }
+    ],
+    toolGroups: [
+      { label:'📊 데이터·분석', type:'t-data',   tools:['Retool','GA (Google Analytics)'] },
+      { label:'💻 코딩',        type:'t-code',   tools:['Google Colab'] },
+      { label:'🎨 디자인',      type:'t-design', tools:['피그마','미리캔버스','망고보드'] },
+      { label:'📝 문서·협업',   type:'t-docs',   tools:['Notion'] }
+    ],
+    certs: [
+      { icon:'📊', name:'ADsP',                         sub:'데이터분석준전문가' },
+      { icon:'💻', name:'컴퓨터활용능력 1급',            sub:'대한상공회의소 국가기술자격' },
+      { icon:'🏆', name:'CSLeaders관리사',               sub:'고객 서비스 관련 자격' },
+      { icon:'☕', name:'SCA Barista Skills Foundation', sub:'SCA 국제 바리스타 자격' },
+      { icon:'🚗', name:'자동차운전면허 2종보통',         sub:'실 운전 가능' }
+    ]
+  },
+  education: [
+    { icon:'📡', school:'한국방송통신대학교', major:'통계데이터과학과 학사 편입 · 2025년 — 현재', detail:'통계데이터과학과 편입 재학 중' },
+    { icon:'🏫', school:'경기대학교',         major:'호텔경영학과 학사 · 2016년 — 2021년',       detail:'졸업 학점: 4.18점' }
+  ],
+  projects: [
+    {
+      topic: '① 데이터로 사회를 읽다',
+      cards: [
+        {
+          id:'council', emoji:'📋', title:'구의회 제출 자료집 제작',
+          tags:[{color:'green',text:'데이터시각화'},{color:'purple',text:'디자인'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2021', blocks:[
+            { type:'subtitle', text:'성매매업소 밀집지역 현장조사 결과를 데이터로 시각화한 자료집 제작' },
+            { type:'bullets', items:['현장조사 결과를 데이터로 정리하여 자료집 제작','구의회 제출용 보고서 디자인'] }
+          ]}
+        },
+        {
+          id:'forum', emoji:'📝', title:'토론회 기획 및 운영',
+          tags:[{color:'blue',text:'데이터 분석'},{color:'green',text:'기획'},{color:'purple',text:'자료집 제작'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2022 – 2023', blocks:[
+            { type:'subtitle', text:'온라인 성매매 환경 변화에 대한 데이터 분석 및 토론회 기획' },
+            { type:'bullets', items:['2년간 모니터링 결과를 정리하여 온라인 성매매 환경 변화 분석글 작성','게시글 수를 지표로 설정하고 일별 데이터 파악','토론회 기획 및 자료집 제작'] }
+          ]}
+        },
+        {
+          id:'db', emoji:'🗃', title:'DB 관리자 · 통계 페이지 기획 및 제작',
+          tags:[{color:'green',text:'SQL'},{color:'green',text:'데이터 분석'},{color:'blue',text:'DB 설계'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2024 – 2025', blocks:[
+            { type:'subtitle', text:'기존 엑셀로 관리하던 데이터에 대한 데이터베이스 기획' },
+            { type:'bullets', items:['엑셀 데이터를 DB로 전환하기 위한 구조 설계','관리자 페이지 및 통계 페이지 기획·제작'] }
+          ]}
+        }
+      ]
+    },
+    {
+      topic: '② 아이디어를 현실로 만들다',
+      cards: [
+        {
+          id:'keyword', emoji:'🔍', title:'키워드 분석 자동화 프로그램 제작',
+          tags:[{color:'green',text:'Python'},{color:'purple',text:'자동화'},{color:'blue',text:'바이브코딩'},{color:'blue',text:'데이터 분석'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2025 – 2026', blocks:[
+            { type:'subtitle', text:'생성형 AI를 활용해 키워드 분석 및 시각화 프로그램 제작' },
+            { type:'bullets', items:['Claude를 활용한 바이브코딩으로 프로그램 개발','키워드 트렌드 분석 및 시각화 자동화'] }
+          ]}
+        },
+        {
+          id:'platform', emoji:'🌐', title:'반성매매 시민참여 플랫폼 리뉴얼',
+          tags:[{color:'orange',text:'기획'},{color:'green',text:'GA 통계'},{color:'purple',text:'홈페이지 리뉴얼'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2025', blocks:[
+            { type:'subtitle', text:'리뉴얼 홈페이지 기획 및 업체 소통' },
+            { type:'bullets', items:['홈페이지 리뉴얼 기획 및 업체 커뮤니케이션','GA 통계 도입으로 방문자 데이터 분석 체계 구축'] }
+          ]}
+        },
+        {
+          id:'record', emoji:'📈', title:'실적관리 시트 제작',
+          tags:[{color:'green',text:'SQL'},{color:'purple',text:'데이터베이스'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2025', blocks:[
+            { type:'subtitle', text:'팀 실적 관리 시트 제작' },
+            { type:'bullets', items:['팀 실적 데이터를 한눈에 파악할 수 있는 관리 시트 설계','SQL 기반 데이터 연동'] }
+          ]}
+        },
+        {
+          id:'winner', emoji:'🎰', title:'당첨자 추첨 · 개인정보 마스킹 프로그램 제작',
+          tags:[{color:'green',text:'Python'},{color:'purple',text:'자동화'},{color:'blue',text:'바이브코딩'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2025 – 2026', blocks:[
+            { type:'subtitle', text:'이벤트 업무 자동화를 위한 당첨자 추첨 · 개인정보 마스킹 프로그램' },
+            { type:'bullets', items:['이벤트 참가자 명단에서 공정한 추첨 기능 구현','개인정보 자동 마스킹으로 보안 강화'] },
+            { type:'link', href:'https://chaeyoony.github.io/eventwinner_demo/', text:'🔗 당첨자 추첨 프로그램 체험해보러 가기 →' }
+          ]}
+        },
+        {
+          id:'mgmt', emoji:'📊', title:'팀 실적/예산 관리 사이트 제작',
+          tags:[{color:'green',text:'Python'},{color:'blue',text:'바이브코딩'},{color:'orange',text:'기획'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2025 – 2026', blocks:[
+            { type:'subtitle', text:'생성형 AI를 활용한 팀 실적/예산 통합 관리 사이트 제작' },
+            { type:'bullets', items:['팀 실적과 예산을 통합 관리하는 웹 사이트 기획 및 개발','Claude를 활용한 바이브코딩으로 구현'] },
+            { type:'link', href:'https://chaeyoony.github.io/management_demo', text:'🔗 실적/예산 관리 사이트 보러가기 →' }
+          ]}
+        }
+      ]
+    },
+    {
+      topic: '③ 현장에서 기획하고 움직이다',
+      cards: [
+        {
+          id:'watchu', emoji:'🎯', title:'시민활동 기획 및 운영',
+          tags:[{color:'green',text:'기획'},{color:'purple',text:'프로그램 운영'},{color:'orange',text:'원고작성'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2021 – 2023', blocks:[
+            { type:'subtitle', text:"시민 조직화 사업 '시민활동단 왓칭유' 기획 및 운영" },
+            { type:'bullets', items:['시민 조직화 사업 기획 및 운영','캠페인 기획 및 활동 원고 작성'] }
+          ]}
+        },
+        {
+          id:'bus', emoji:'🚌', title:'버스정류장 광고 게시 캠페인',
+          tags:[{color:'green',text:'기획'},{color:'green',text:'데이터시각화'},{color:'purple',text:'디자인'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2021', blocks:[
+            { type:'subtitle', text:'성매매 문제 인식 확산을 위한 버스정류장 포스터 캠페인 기획' },
+            { type:'bullets', items:['캠페인 기획 및 포스터 디자인','버스정류장 광고 데이터 시각화'] }
+          ]}
+        },
+        {
+          id:'diffgame', emoji:'🎮', title:'다른 그림 찾기 이벤트',
+          tags:[{color:'orange',text:'기획'},{color:'purple',text:'홈페이지 리뉴얼'}],
+          modal:{ period:'서울시립 다시함께상담센터 · 2025', blocks:[
+            { type:'subtitle', text:'리뉴얼 사이트 홍보를 위한 다른 그림 찾기 이벤트 페이지 기획' },
+            { type:'bullets', items:['리뉴얼 사이트 홍보 이벤트 기획','이벤트 페이지 제작 기획'] }
+          ]}
+        }
+      ]
+    }
+  ],
+  publications: []
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let D = deepClone(DEFAULT);
+let curSection = 'hero';
+let skillsTab  = 'gauges';
+let pendingImgTarget = null;      // {type:'block'|'cover'|'carousel', gi, ci, bi?, imgIdx?}
+let pendingCoverTarget = null;    // {gi, ci} for card cover image upload
+let pendingPubTarget = null;      // {pi} for publication thumbnail upload
+
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+function saveToLocal() {
+  localStorage.setItem('portfolioAdmin_v2', JSON.stringify(D));
+  toast('💾 저장 완료!');
+}
+function loadFromLocal() {
+  try { const s = localStorage.getItem('portfolioAdmin_v2'); if (s) D = JSON.parse(s); } catch(e){}
+  if (!D.publications) D.publications = [];
+}
+function resetData() {
+  if (!confirm('모든 변경사항을 초기값으로 되돌릴까요?')) return;
+  D = deepClone(DEFAULT);
+  localStorage.removeItem('portfolioAdmin_v2');
+  render();
+  toast('↺ 초기화 완료');
+}
+function toast(msg, dur=2200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+}
+function e(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function showSection(sec) {
+  curSection = sec;
+  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+  const t = document.getElementById('tab-' + sec);
+  if (t) t.classList.add('active');
+  render();
+}
+function render() {
+  const main = document.getElementById('main');
+  /* 열린 카드 ID 목록 저장 */
+  const openIds = [...document.querySelectorAll('.ci-body.open')].map(el => el.id);
+  switch(curSection) {
+    case 'hero':      main.innerHTML = renderHero();      break;
+    case 'career':    main.innerHTML = renderCareer();    break;
+    case 'skills':    main.innerHTML = renderSkills();    break;
+    case 'education': main.innerHTML = renderEdu();       break;
+    case 'projects':  main.innerHTML = renderProjects();  break;
+    case 'publications': main.innerHTML = renderPublications(); break;
+    case 'download':  main.innerHTML = renderDownload();  break;
+  }
+  /* 열렸던 카드 복원 */
+  openIds.forEach(id => {
+    const body = document.getElementById(id);
+    if (!body) return;
+    body.classList.add('open');
+    const header = body.previousElementSibling;
+    if (header && header.classList.contains('ci-header')) header.classList.add('open');
+  });
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+function renderHero() {
+  const h = D.hero;
+  return `
+  <div class="section-editor">
+    <div class="section-editor-title">👋 소개 (Hero)</div>
+    <div class="section-editor-desc">페이지 상단의 이름, 소개 문구, 배지, 인용구를 수정해요.</div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">이름</label>
+        <input type="text" value="${e(h.name)}" oninput="D.hero.name=this.value">
+      </div>
+      <div class="form-group">
+        <label class="form-label">한줄 소개</label>
+        <input type="text" value="${e(h.subtitle)}" oninput="D.hero.subtitle=this.value">
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🏷 배지</div>
+        <button class="btn btn-secondary btn-sm" onclick="D.hero.badges.push({color:'blue',text:'새 배지'});render()">+ 추가</button>
+      </div>
+      ${h.badges.map((b,i) => `
+        <div class="list-item">
+          <div class="list-item-content">
+            <div style="display:flex;gap:0.6rem;align-items:center;">
+              <select onchange="D.hero.badges[${i}].color=this.value" style="width:96px">
+                <option value="blue"   ${b.color==='blue'  ?'selected':''}>🔵 파랑</option>
+                <option value="green"  ${b.color==='green' ?'selected':''}>🟢 초록</option>
+                <option value="purple" ${b.color==='purple'?'selected':''}>🟣 보라</option>
+              </select>
+              <input type="text" value="${e(b.text)}" oninput="D.hero.badges[${i}].text=this.value" style="flex:1">
+            </div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="D.hero.badges.splice(${i},1);render()">✕</button>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">💬 인용구</div></div>
+      <div class="form-group">
+        <label class="form-label">굵은 제목</label>
+        <textarea oninput="D.hero.quoteTitle=this.value">${e(h.quoteTitle)}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">본문 문단</label>
+        ${h.quoteParagraphs.map((p,i) => `
+          <div style="display:flex;gap:0.45rem;margin-bottom:0.45rem;align-items:flex-start;">
+            <textarea oninput="D.hero.quoteParagraphs[${i}]=this.value" style="flex:1;min-height:60px;">${e(p)}</textarea>
+            <button class="btn btn-danger btn-sm" style="margin-top:0.4rem;flex-shrink:0;" onclick="D.hero.quoteParagraphs.splice(${i},1);render()">✕</button>
+          </div>
+        `).join('')}
+        <button class="add-btn" onclick="D.hero.quoteParagraphs.push('');render()">+ 문단 추가</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   CAREER
+   ============================================================ */
+function renderCareer() {
+  return `
+  <div class="section-editor">
+    <div class="section-editor-title">💼 경력</div>
+    <div class="section-editor-desc">기관별 경력 블록과 담당 업무를 수정해요.</div>
+    ${D.career.map((blk, bi) => `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🏢 기관 ${bi+1}</div>
+          <div class="card-actions">
+            ${bi > 0 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.career,${bi},${bi-1});render()">↑</button>` : ''}
+            ${bi < D.career.length-1 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.career,${bi},${bi+1});render()">↓</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="if(confirm('삭제?')){D.career.splice(${bi},1);render()}">삭제</button>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label">기관명</label><input type="text" value="${e(blk.org)}" oninput="D.career[${bi}].org=this.value"></div>
+          <div class="form-group"><label class="form-label">기간</label><input type="text" value="${e(blk.period)}" oninput="D.career[${bi}].period=this.value"></div>
+        </div>
+        <div style="font-size:0.78rem;font-weight:700;color:#5badd4;margin-bottom:0.45rem;">담당 업무</div>
+        ${blk.items.map((item, ii) => `
+          <div class="ci-editor">
+            <div class="ci-header" onclick="toggleCI('ci-${bi}-${ii}',this)">
+              <span class="ci-chevron">▼</span>
+              <span class="ci-title">${e(item.title)}</span>
+              <span class="ci-year">(${e(item.year)})</span>
+              <div style="display:flex;gap:0.3rem;flex-shrink:0;">
+                ${ii > 0 ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();swap(D.career[${bi}].items,${ii},${ii-1});render()">↑</button>` : ''}
+                ${ii < blk.items.length-1 ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();swap(D.career[${bi}].items,${ii},${ii+1});render()">↓</button>` : ''}
+                <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();D.career[${bi}].items.splice(${ii},1);render()">✕</button>
+              </div>
+            </div>
+            <div class="ci-body" id="ci-${bi}-${ii}">
+              <div class="grid-2" style="margin-bottom:0.75rem;">
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">담당명</label><input type="text" value="${e(item.title)}" oninput="D.career[${bi}].items[${ii}].title=this.value"></div>
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">연도</label><input type="text" value="${e(item.year)}" oninput="D.career[${bi}].items[${ii}].year=this.value"></div>
+              </div>
+              <div class="form-group" style="margin-bottom:0.75rem;">
+                <label class="form-label">배지</label>
+                <select onchange="D.career[${bi}].items[${ii}].badge=this.value">
+                  <option value="none" ${item.badge==='none'?'selected':''}>없음</option>
+                  <option value="new"  ${item.badge==='new' ?'selected':''}>🌟 데이터 분석 시작!</option>
+                  <option value="data" ${item.badge==='data'?'selected':''}>📊 데이터 분석 맛보기</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">상세 내용</label>
+                <input type="text" value="${e(item.detail)}" oninput="D.career[${bi}].items[${ii}].detail=this.value">
+              </div>
+            </div>
+          </div>
+        `).join('')}
+        <button class="add-btn" onclick="D.career[${bi}].items.push({title:'새 업무',year:'2024',badge:'none',detail:''});render()">+ 업무 추가</button>
+      </div>
+    `).join('')}
+    <button class="add-btn" onclick="D.career.push({org:'새 기관',period:'기간',items:[{title:'담당 업무',year:'2024',badge:'none',detail:''}]});render()">+ 기관 추가</button>
+  </div>`;
+}
+function toggleCI(id, header) {
+  const body = document.getElementById(id);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  header.classList.toggle('open', open);
+}
+
+/* ============================================================
+   SKILLS
+   ============================================================ */
+function renderSkills() {
+  return `
+  <div class="section-editor">
+    <div class="section-editor-title">🛠 스킬 · 자격</div>
+    <div class="section-editor-desc">기술 스킬 게이지, 활용 툴, 자격증을 수정해요.</div>
+    <div class="tab-row">
+      <button class="btn ${skillsTab==='gauges'?'btn-primary':'btn-secondary'}" onclick="skillsTab='gauges';render()">💻 기술 스킬</button>
+      <button class="btn ${skillsTab==='tools' ?'btn-primary':'btn-secondary'}" onclick="skillsTab='tools';render()">🔧 활용 툴</button>
+      <button class="btn ${skillsTab==='certs' ?'btn-primary':'btn-secondary'}" onclick="skillsTab='certs';render()">📜 자격증</button>
+    </div>
+    ${skillsTab === 'gauges' ? renderGauges() : ''}
+    ${skillsTab === 'tools'  ? renderTools()  : ''}
+    ${skillsTab === 'certs'  ? renderCerts()  : ''}
+  </div>`;
+}
+function renderGauges() {
+  return D.skills.gauges.map((g, i) => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">${e(g.name)}</div>
+        <div class="card-actions">
+          ${i > 0 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.skills.gauges,${i},${i-1});render()">↑</button>` : ''}
+          ${i < D.skills.gauges.length-1 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.skills.gauges,${i},${i+1});render()">↓</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="D.skills.gauges.splice(${i},1);render()">삭제</button>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">스킬명</label><input type="text" value="${e(g.name)}" oninput="D.skills.gauges[${i}].name=this.value"></div>
+        <div class="form-group"><label class="form-label">레벨 표시</label><input type="text" value="${e(g.level)}" oninput="D.skills.gauges[${i}].level=this.value"></div>
+      </div>
+      <div class="form-group"><label class="form-label">설명</label><input type="text" value="${e(g.desc)}" oninput="D.skills.gauges[${i}].desc=this.value"></div>
+      <div class="form-group">
+        <label class="form-label">레벨 색상</label>
+        <select onchange="D.skills.gauges[${i}].isLearning=this.value==='true'">
+          <option value="false" ${!g.isLearning?'selected':''}>🔵 파랑 (숙련)</option>
+          <option value="true"  ${g.isLearning ?'selected':''}>🟡 노랑 (학습중)</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">게이지 수치 &nbsp;<span id="rv-${i}" style="color:#1a7fbf;font-weight:700;">${g.width}%</span></label>
+        <div class="range-row">
+          <input type="range" min="0" max="100" value="${g.width}" oninput="D.skills.gauges[${i}].width=+this.value;document.getElementById('rv-${i}').textContent=this.value+'%';document.getElementById('gf-${i}').style.width=this.value+'%'">
+        </div>
+        <div class="gauge-preview"><div class="gauge-preview-fill" id="gf-${i}" style="width:${g.width}%;${g.isLearning?'background:linear-gradient(90deg,#f59e0b,#fcd34d);':''}"></div></div>
+      </div>
+    </div>
+  `).join('') + `<button class="add-btn" onclick="D.skills.gauges.push({name:'새 스킬',level:'학습중',isLearning:true,desc:'',width:40});render()">+ 스킬 추가</button>`;
+}
+function renderTools() {
+  return D.skills.toolGroups.map((grp, gi) => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">${e(grp.label)}</div>
+        <button class="btn btn-danger btn-sm" onclick="if(confirm('삭제?')){D.skills.toolGroups.splice(${gi},1);render()}">삭제</button>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">카테고리명</label><input type="text" value="${e(grp.label)}" oninput="D.skills.toolGroups[${gi}].label=this.value"></div>
+        <div class="form-group">
+          <label class="form-label">색상 스타일</label>
+          <select onchange="D.skills.toolGroups[${gi}].type=this.value">
+            <option value="t-data"   ${grp.type==='t-data'  ?'selected':''}>📊 파랑 (데이터)</option>
+            <option value="t-code"   ${grp.type==='t-code'  ?'selected':''}>💻 초록 (코딩)</option>
+            <option value="t-design" ${grp.type==='t-design'?'selected':''}>🎨 보라 (디자인)</option>
+            <option value="t-docs"   ${grp.type==='t-docs'  ?'selected':''}>📝 노랑 (문서)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">툴 목록</label>
+        ${grp.tools.map((t,ti) => `
+          <div style="display:flex;gap:0.45rem;margin-bottom:0.4rem;">
+            <input type="text" value="${e(t)}" oninput="D.skills.toolGroups[${gi}].tools[${ti}]=this.value" style="flex:1">
+            <button class="btn btn-danger btn-sm" onclick="D.skills.toolGroups[${gi}].tools.splice(${ti},1);render()">✕</button>
+          </div>
+        `).join('')}
+        <button class="add-btn" onclick="D.skills.toolGroups[${gi}].tools.push('새 툴');render()">+ 툴 추가</button>
+      </div>
+    </div>
+  `).join('') + `<button class="add-btn" onclick="D.skills.toolGroups.push({label:'새 카테고리',type:'t-data',tools:['새 툴']});render()">+ 카테고리 추가</button>`;
+}
+function renderCerts() {
+  return D.skills.certs.map((c, i) => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">${c.icon} ${e(c.name)}</div>
+        <div class="card-actions">
+          ${i > 0 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.skills.certs,${i},${i-1});render()">↑</button>` : ''}
+          ${i < D.skills.certs.length-1 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.skills.certs,${i},${i+1});render()">↓</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="D.skills.certs.splice(${i},1);render()">삭제</button>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">아이콘</label><input type="text" value="${e(c.icon)}" oninput="D.skills.certs[${i}].icon=this.value"></div>
+        <div class="form-group"><label class="form-label">자격증명</label><input type="text" value="${e(c.name)}" oninput="D.skills.certs[${i}].name=this.value"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:0"><label class="form-label">부설명</label><input type="text" value="${e(c.sub)}" oninput="D.skills.certs[${i}].sub=this.value"></div>
+    </div>
+  `).join('') + `<button class="add-btn" onclick="D.skills.certs.push({icon:'🏅',name:'새 자격증',sub:''});render()">+ 자격증 추가</button>`;
+}
+
+/* ============================================================
+   EDUCATION
+   ============================================================ */
+function renderEdu() {
+  return `
+  <div class="section-editor">
+    <div class="section-editor-title">🎓 학력</div>
+    <div class="section-editor-desc">학교, 전공, 기간 정보를 수정해요.</div>
+    ${D.education.map((edu, i) => `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">${edu.icon} ${e(edu.school)}</div>
+          <div class="card-actions">
+            ${i > 0 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.education,${i},${i-1});render()">↑</button>` : ''}
+            ${i < D.education.length-1 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.education,${i},${i+1});render()">↓</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="if(D.education.length<2){toast('최소 1개');return;}D.education.splice(${i},1);render()">삭제</button>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label">아이콘</label><input type="text" value="${e(edu.icon)}" oninput="D.education[${i}].icon=this.value"></div>
+          <div class="form-group"><label class="form-label">학교명</label><input type="text" value="${e(edu.school)}" oninput="D.education[${i}].school=this.value"></div>
+        </div>
+        <div class="form-group"><label class="form-label">전공 · 기간</label><input type="text" value="${e(edu.major)}" oninput="D.education[${i}].major=this.value"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">상세 정보</label><input type="text" value="${e(edu.detail)}" oninput="D.education[${i}].detail=this.value"></div>
+      </div>
+    `).join('')}
+    <button class="add-btn" onclick="D.education.push({icon:'🏫',school:'새 학교',major:'학과 · 기간',detail:''});render()">+ 학교 추가</button>
+  </div>`;
+}
+
+/* ============================================================
+   PROJECTS — 주제별 + 모달 편집
+   ============================================================ */
+function renderProjects() {
+  return `
+  <div class="section-editor">
+    <div class="section-editor-title">🌟 프로젝트</div>
+    <div class="section-editor-desc">주제 그룹, 카드(이모지·제목·태그), 카드 클릭 시 열리는 상세 내용(모달)을 모두 편집할 수 있어요.</div>
+
+    ${D.projects.map((grp, gi) => `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📂 ${e(grp.topic)}</div>
+          <div class="card-actions">
+            ${gi > 0 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.projects,${gi},${gi-1});render()">↑</button>` : ''}
+            ${gi < D.projects.length-1 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.projects,${gi},${gi+1});render()">↓</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="if(confirm('그룹 삭제?')){D.projects.splice(${gi},1);render()}">그룹 삭제</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">주제 제목</label>
+          <input type="text" value="${e(grp.topic)}" oninput="D.projects[${gi}].topic=this.value">
+        </div>
+
+        ${grp.cards.map((card, ci) => `
+          <div class="ci-editor">
+            <div class="ci-header" onclick="toggleCI('pc-${gi}-${ci}',this)">
+              <span class="ci-chevron">▼</span>
+              <span style="font-size:1rem;flex-shrink:0">${e(card.emoji)}</span>
+              <span class="ci-title">${e(card.title)}</span>
+              <div style="display:flex;gap:0.3rem;flex-shrink:0">
+                ${ci > 0 ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();swap(D.projects[${gi}].cards,${ci},${ci-1});render()">↑</button>` : ''}
+                ${ci < grp.cards.length-1 ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();swap(D.projects[${gi}].cards,${ci},${ci+1});render()">↓</button>` : ''}
+                <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();D.projects[${gi}].cards.splice(${ci},1);render()">✕</button>
+              </div>
+            </div>
+            <div class="ci-body" id="pc-${gi}-${ci}">
+              <!-- 카드 기본 정보 -->
+              <div class="grid-2" style="margin-bottom:0.8rem">
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">이모지</label><input type="text" value="${e(card.emoji)}" oninput="D.projects[${gi}].cards[${ci}].emoji=this.value"></div>
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">제목</label><input type="text" value="${e(card.title)}" oninput="D.projects[${gi}].cards[${ci}].title=this.value"></div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">태그 &nbsp;<span style="font-weight:400;color:#5badd4;font-size:0.78rem;">(클릭하면 삭제)</span></label>
+                <div class="tag-row">
+                  ${card.tags.map((tag,ti) => `
+                    <span class="tag-chip tag-chip-${tag.color}" onclick="D.projects[${gi}].cards[${ci}].tags.splice(${ti},1);render()" title="클릭하여 삭제">
+                      ${e(tag.text)} ✕
+                    </span>
+                  `).join('')}
+                </div>
+                <div style="display:flex;gap:0.45rem;align-items:center;margin-top:0.35rem;">
+                  <input type="text" placeholder="태그명" id="nt-${gi}-${ci}" style="flex:1;width:auto">
+                  <select id="nc-${gi}-${ci}" style="width:90px">
+                    <option value="blue">🔵 파랑</option>
+                    <option value="green">🟢 초록</option>
+                    <option value="purple">🟣 보라</option>
+                    <option value="orange">🟠 주황</option>
+                  </select>
+                  <button class="btn btn-secondary btn-sm" onclick="addTag(${gi},${ci})">+ 추가</button>
+                </div>
+              </div>
+
+              <!-- 모달 상세 내용 편집 -->
+              <div class="modal-editor">
+                <div class="modal-editor-title">🪟 카드 클릭 시 열리는 상세 내용 편집</div>
+                <div class="form-group">
+                  <label class="form-label">기관 · 기간</label>
+                  <input type="text" value="${e(card.modal?.period||'')}" oninput="D.projects[${gi}].cards[${ci}].modal.period=this.value" placeholder="예: 서울시립 다시함께상담센터 · 2024">
+                </div>
+                <label class="form-label" style="margin-bottom:0.5rem;">콘텐츠 블록</label>
+                ${(card.modal?.blocks||[]).map((blk, bi) => renderBlock(gi, ci, bi, blk)).join('')}
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.4rem;">
+                  <button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;border:none;" onclick="addBlock(${gi},${ci},'subtitle')">+ 소제목</button>
+                  <button class="btn btn-sm" style="background:#f0fdf4;color:#065f46;border:none;" onclick="addBlock(${gi},${ci},'paragraph')">+ 문단</button>
+                  <button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:none;" onclick="addBlock(${gi},${ci},'bullets')">+ 목록</button>
+                  <button class="btn btn-sm" style="background:#fce7f3;color:#9d174d;border:none;" onclick="addBlock(${gi},${ci},'image')">+ 이미지 1장</button>
+                  <button class="btn btn-sm" style="background:#fce7f3;color:#9d174d;border:none;" onclick="addBlock(${gi},${ci},'carousel')">+ 슬라이드 (여러 장)</button>
+                  <button class="btn btn-sm" style="background:#ede9fe;color:#5b21b6;border:none;" onclick="addBlock(${gi},${ci},'link')">+ 링크</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+
+        <button class="add-btn" onclick="D.projects[${gi}].cards.push({id:'new-'+Date.now(),emoji:'✨',title:'새 프로젝트',tags:[],modal:{period:'',blocks:[]}});render()">+ 카드 추가</button>
+      </div>
+    `).join('')}
+
+    <button class="add-btn" onclick="D.projects.push({topic:'새 주제 그룹',cards:[]});render()">+ 주제 그룹 추가</button>
+  </div>`;
+}
+
+function renderPublications() {
+  return `
+  <div class="section-editor">
+    <div class="section-editor-title">📚 발간물</div>
+    <div class="section-editor-desc">썸네일 사진과 제목이 카드로 보이고, 클릭하면 설명글과 링크가 담긴 모달이 열려요.</div>
+
+    ${(D.publications||[]).map((pub, pi) => `
+      <div class="ci-editor">
+        <div class="ci-header" onclick="toggleCI('pub-${pi}',this)">
+          <span class="ci-chevron">▼</span>
+          <span class="ci-title">${e(pub.title || '(제목 없음)')}</span>
+          ${pub.year ? `<span class="ci-year">${e(pub.year)}</span>` : ''}
+          <div style="display:flex;gap:0.3rem;flex-shrink:0">
+            ${pi > 0 ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();swap(D.publications,${pi},${pi-1});render()">↑</button>` : ''}
+            ${pi < D.publications.length-1 ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();swap(D.publications,${pi},${pi+1});render()">↓</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();D.publications.splice(${pi},1);render()">✕</button>
+          </div>
+        </div>
+        <div class="ci-body" id="pub-${pi}">
+          <div class="form-group">
+            <label class="form-label">썸네일 사진</label>
+            <div style="display:flex;align-items:center;gap:0.8rem;">
+              ${pub.thumb
+                ? `<img src="${pub.thumb}" style="width:96px;height:68px;object-fit:cover;border-radius:8px;border:1px solid #d8eef8;">`
+                : `<div style="width:96px;height:68px;border-radius:8px;background:#f0f9ff;border:1px dashed #c9eef8;display:flex;align-items:center;justify-content:center;color:#a0c4d8;font-size:0.72rem;">없음</div>`}
+              <button class="btn btn-secondary btn-sm" onclick="openPubThumbUpload(${pi})">🖼 사진 업로드</button>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">제목</label>
+              <input type="text" value="${e(pub.title)}" oninput="D.publications[${pi}].title=this.value">
+            </div>
+            <div class="form-group">
+              <label class="form-label">연도</label>
+              <input type="text" value="${e(pub.year||'')}" placeholder="예: 2024" oninput="D.publications[${pi}].year=this.value">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">설명글</label>
+            <textarea oninput="D.publications[${pi}].description=this.value">${e(pub.description||'')}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">링크 &nbsp;<span style="font-weight:400;color:#5badd4;font-size:0.78rem;">(외부 사이트 · 기사 링크 등)</span></label>
+            <input type="text" value="${e(pub.link||'')}" placeholder="https://..." oninput="D.publications[${pi}].link=this.value">
+          </div>
+          <div class="form-group">
+            <label class="form-label">PDF 파일 &nbsp;<span style="font-weight:400;color:#5badd4;font-size:0.78rem;">(첨부하면 모달에서 바로 열람 가능)</span></label>
+            <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+              ${pub.pdf
+                ? `<span style="font-size:0.83rem;color:#1a4f6e;background:#f0f9ff;border:1px solid #c9eef8;border-radius:6px;padding:0.35rem 0.7rem;">📄 ${e(pub.pdfName||'PDF 첨부됨')}</span>`
+                : `<span style="font-size:0.8rem;color:#a0c4d8;">첨부된 PDF 없음</span>`}
+              <button class="btn btn-secondary btn-sm" onclick="openPubPdfUpload(${pi})">📄 PDF 업로드</button>
+              ${pub.pdf ? `<button class="btn btn-danger btn-sm" onclick="D.publications[${pi}].pdf='';D.publications[${pi}].pdfName='';render()">삭제</button>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+
+    <button class="add-btn" onclick="D.publications.push({id:'pub-'+Date.now(),title:'새 발간물',year:'',thumb:'',description:'',link:'',pdf:'',pdfName:''});render()">+ 발간물 추가</button>
+  </div>`;
+}
+
+function openPubThumbUpload(pi) {
+  pendingPubTarget = { pi };
+  document.getElementById('pub-thumb-upload').click();
+}
+function handlePubThumbUpload(ev) {
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if (!file || !pendingPubTarget) return;
+  const { pi } = pendingPubTarget;
+  const reader = new FileReader();
+  reader.onload = function(e2) {
+    D.publications[pi].thumb = e2.target.result;
+    pendingPubTarget = null;
+    render();
+    toast('✅ 썸네일 사진 업로드 완료!');
+  };
+  reader.readAsDataURL(file);
+}
+function openPubPdfUpload(pi) {
+  pendingPubTarget = { pi };
+  document.getElementById('pub-pdf-upload').click();
+}
+function handlePubPdfUpload(ev) {
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if (!file || !pendingPubTarget) return;
+  const { pi } = pendingPubTarget;
+  if (file.size > 15 * 1024 * 1024) {
+    pendingPubTarget = null;
+    return toast('❌ PDF 용량이 너무 커요 (15MB 이하로 올려주세요)', 3000);
+  }
+  const reader = new FileReader();
+  reader.onload = function(e2) {
+    D.publications[pi].pdf = e2.target.result;
+    D.publications[pi].pdfName = file.name;
+    pendingPubTarget = null;
+    render();
+    toast('✅ PDF 업로드 완료!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderBlock(gi, ci, bi, blk) {
+  const typeLabels = { subtitle:'소제목', paragraph:'문단', bullets:'목록', image:'이미지', carousel:'슬라이드', link:'링크' };
+  const typeClass  = { subtitle:'bt-subtitle', paragraph:'bt-paragraph', bullets:'bt-bullets', image:'bt-image', carousel:'bt-image', link:'bt-link' };
+  const actBtns = `
+    <div class="block-actions">
+      ${bi > 0 ? `<button class="btn btn-secondary btn-sm" onclick="swapBlock(${gi},${ci},${bi},${bi-1})">↑</button>` : ''}
+      ${`<button class="btn btn-danger btn-sm" onclick="removeBlock(${gi},${ci},${bi})">✕</button>`}
+    </div>`;
+
+  if (blk.type === 'subtitle') return `
+    <div class="block-item">
+      <span class="block-type-badge ${typeClass[blk.type]}">${typeLabels[blk.type]}</span>${actBtns}
+      <textarea style="min-height:48px;" oninput="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].text=this.value">${e(blk.text||'')}</textarea>
+    </div>`;
+
+  if (blk.type === 'paragraph') return `
+    <div class="block-item">
+      <span class="block-type-badge ${typeClass[blk.type]}">${typeLabels[blk.type]}</span>${actBtns}
+      <textarea oninput="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].text=this.value">${e(blk.text||'')}</textarea>
+    </div>`;
+
+  if (blk.type === 'bullets') {
+    const items = blk.items || [];
+    return `
+    <div class="block-item">
+      <span class="block-type-badge ${typeClass[blk.type]}">${typeLabels[blk.type]}</span>${actBtns}
+      ${items.map((it, ii) => `
+        <div style="display:flex;gap:0.4rem;margin-bottom:0.35rem;align-items:flex-start;">
+          <span style="margin-top:0.55rem;color:#5badd4;flex-shrink:0;">•</span>
+          <textarea style="flex:1;min-height:44px;" oninput="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].items[${ii}]=this.value">${e(it)}</textarea>
+          <button class="btn btn-danger btn-sm" style="margin-top:0.35rem;flex-shrink:0;" onclick="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].items.splice(${ii},1);render()">✕</button>
+        </div>
+      `).join('')}
+      <button class="add-btn" style="margin-top:0.3rem;" onclick="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].items.push('');render()">+ 항목 추가</button>
+    </div>`;
+  }
+
+  if (blk.type === 'image') {
+    const imgSrc = blk.src || '';
+    return `
+    <div class="block-item">
+      <span class="block-type-badge ${typeClass[blk.type]}">${typeLabels[blk.type]}</span>${actBtns}
+      <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.4rem;">
+        <button class="btn btn-sm" style="background:#fce7f3;color:#9d174d;border:1px solid #fbcfe8;" onclick="openImgUpload(${gi},${ci},${bi})">📷 이미지 업로드</button>
+        ${imgSrc ? '<span style="font-size:0.78rem;color:#5badd4;">이미지 업로드됨 ✓</span>' : '<span style="font-size:0.78rem;color:#a0c4d8;">이미지를 선택해 주세요</span>'}
+      </div>
+      ${imgSrc ? `<img src="${imgSrc}" class="img-preview" alt="미리보기">` : ''}
+      <div class="form-group" style="margin-bottom:0;margin-top:0.5rem;">
+        <label class="form-label">캡션 (선택)</label>
+        <input type="text" value="${e(blk.caption||'')}" oninput="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].caption=this.value" placeholder="이미지 설명 (선택사항)">
+      </div>
+    </div>`;
+  }
+
+  if (blk.type === 'carousel') {
+    const imgs = blk.images || [];
+    return `
+    <div class="block-item">
+      <span class="block-type-badge ${typeClass[blk.type]}">${typeLabels[blk.type]}</span>${actBtns}
+      <div style="font-size:0.78rem;color:#5badd4;margin-bottom:0.6rem;">📎 여러 장의 이미지를 슬라이드로 표시해요 (${imgs.length}장 업로드됨)</div>
+      ${imgs.map((img, ii) => `
+        <div style="display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:0.6rem;padding:0.5rem;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+          <img src="${img.src}" style="width:72px;height:52px;object-fit:cover;border-radius:6px;flex-shrink:0;" alt="">
+          <div style="flex:1;min-width:0;">
+            <input type="text" value="${e(img.caption||'')}" oninput="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].images[${ii}].caption=this.value" placeholder="캡션 (선택)" style="margin-bottom:0.3rem;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:0.25rem;flex-shrink:0;">
+            ${ii > 0 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].images,${ii},${ii-1});render()">↑</button>` : ''}
+            ${ii < imgs.length-1 ? `<button class="btn btn-secondary btn-sm" onclick="swap(D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].images,${ii},${ii+1});render()">↓</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].images.splice(${ii},1);render()">✕</button>
+          </div>
+        </div>
+      `).join('')}
+      <button class="btn btn-sm" style="background:#fce7f3;color:#9d174d;border:1px solid #fbcfe8;margin-top:0.2rem;" onclick="openCarouselImgUpload(${gi},${ci},${bi})">📷 이미지 추가</button>
+    </div>`;
+  }
+
+  if (blk.type === 'link') return `
+    <div class="block-item">
+      <span class="block-type-badge ${typeClass[blk.type]}">${typeLabels[blk.type]}</span>${actBtns}
+      <div class="form-group" style="margin-bottom:0.5rem;">
+        <label class="form-label">URL</label>
+        <input type="url" value="${e(blk.href||'')}" oninput="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].href=this.value" placeholder="https://...">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">링크 텍스트</label>
+        <input type="text" value="${e(blk.text||'')}" oninput="D.projects[${gi}].cards[${ci}].modal.blocks[${bi}].text=this.value" placeholder="🔗 바로가기 →">
+      </div>
+    </div>`;
+
+  return '';
+}
+
+function addBlock(gi, ci, type) {
+  if (!D.projects[gi].cards[ci].modal) D.projects[gi].cards[ci].modal = {period:'',blocks:[]};
+  const defaults = {
+    subtitle:  { type:'subtitle',  text:'' },
+    paragraph: { type:'paragraph', text:'' },
+    bullets:   { type:'bullets',   items:[''] },
+    image:     { type:'image',     src:'', caption:'' },
+    carousel:  { type:'carousel',  images:[] },
+    link:      { type:'link',      href:'', text:'' }
+  };
+  D.projects[gi].cards[ci].modal.blocks.push(defaults[type]);
+  render();
+}
+function removeBlock(gi, ci, bi) {
+  D.projects[gi].cards[ci].modal.blocks.splice(bi, 1);
+  render();
+}
+function swapBlock(gi, ci, bi, bj) {
+  swap(D.projects[gi].cards[ci].modal.blocks, bi, bj);
+  render();
+}
+
+/* 이미지 업로드 */
+function openImgUpload(gi, ci, bi) {
+  pendingImgTarget = {type:'block', gi, ci, bi};
+  document.getElementById('img-upload').click();
+}
+function openCarouselImgUpload(gi, ci, bi) {
+  pendingImgTarget = {type:'carousel', gi, ci, bi};
+  document.getElementById('img-upload').click();
+}
+function openCoverImgUpload(gi, ci) {
+  pendingCoverTarget = {gi, ci};
+  document.getElementById('cover-img-upload').click();
+}
+function handleCoverImgUpload(ev) {
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if (!file || !pendingCoverTarget) return;
+  const {gi, ci} = pendingCoverTarget;
+  const reader = new FileReader();
+  reader.onload = function(e2) {
+    D.projects[gi].cards[ci].coverImg = e2.target.result;
+    pendingCoverTarget = null;
+    render();
+    toast('✅ 썸네일 이미지 업로드 완료!');
+  };
+  reader.readAsDataURL(file);
+}
+function handleImgUpload(ev) {
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if (!file || !pendingImgTarget) return;
+  const target = pendingImgTarget;
+  pendingImgTarget = null;
+  const reader = new FileReader();
+  reader.onload = function(e2) {
+    const src = e2.target.result;
+    const {type, gi, ci, bi} = target;
+    if (type === 'block') {
+      D.projects[gi].cards[ci].modal.blocks[bi].src = src;
+      toast('✅ 이미지 업로드 완료!');
+    } else if (type === 'carousel') {
+      if (!D.projects[gi].cards[ci].modal.blocks[bi].images) {
+        D.projects[gi].cards[ci].modal.blocks[bi].images = [];
+      }
+      D.projects[gi].cards[ci].modal.blocks[bi].images.push({src, caption:''});
+      toast('✅ 슬라이드 이미지 추가 완료!');
+    }
+    render();
+  };
+  reader.readAsDataURL(file);
+}
+
+function addTag(gi, ci) {
+  const txt = document.getElementById(`nt-${gi}-${ci}`)?.value?.trim();
+  const col = document.getElementById(`nc-${gi}-${ci}`)?.value || 'blue';
+  if (!txt) return toast('태그명을 입력해 주세요');
+  D.projects[gi].cards[ci].tags.push({color:col, text:txt});
+  render();
+}
+
+/* ============================================================
+   DOWNLOAD
+   ============================================================ */
+function renderDownload() {
+  return `
+  <div class="section-editor">
+    <div class="section-editor-title">⬇ HTML 내보내기</div>
+    <div class="section-editor-desc">수정 내용을 반영한 index.html을 다운로드해요.</div>
+    <div class="dl-steps">
+      <h3>📋 사용 방법</h3>
+      <div class="dl-step"><div class="step-num">1</div><div>왼쪽 메뉴에서 각 섹션을 편집한 뒤 상단 <strong>💾 저장</strong> 버튼을 눌러요.</div></div>
+      <div class="dl-step"><div class="step-num">2</div><div>아래 버튼 클릭 → 원본 <strong>index.html</strong> 선택 (프로필 사진 등 기존 데이터 보존)</div></div>
+      <div class="dl-step"><div class="step-num">3</div><div>수정된 <strong>index.html</strong>이 다운로드돼요. GitHub에 올리면 바로 반영 🚀</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <button class="btn btn-primary" style="font-size:0.95rem;padding:0.6rem 1.4rem;" onclick="document.getElementById('file-input').click()">
+        📂 원본 index.html 업로드 후 다운로드
+      </button>
+      <span id="dl-status" style="font-size:0.85rem;color:#5badd4;"></span>
+    </div>
+  </div>`;
+}
+
+function triggerDownload() { showSection('download'); setTimeout(() => document.getElementById('file-input').click(), 150); }
+
+async function handleFile(ev) {
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  const status = document.getElementById('dl-status');
+  if (status) status.textContent = '⏳ 처리 중...';
+  try {
+    const text = await file.text();
+    const result = applyChanges(text);
+    const blob = new Blob([result], {type:'text/html;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'index.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    if (status) status.textContent = '✅ 다운로드 완료!';
+    toast('✅ index.html 다운로드 완료!');
+  } catch(err) {
+    console.error(err);
+    if (status) status.textContent = '❌ 오류: ' + err.message;
+    toast('❌ 오류: ' + err.message);
+  }
+}
+
+/* ============================================================
+   HTML GENERATION — 순수 문자열 치환 (DOMParser 미사용)
+   ============================================================ */
+
+/* <section id="ID"> ... </section> 의 내부 innerHTML만 교체 */
+function replaceSectionContent(html, id, newContent) {
+  const re = new RegExp('<section([^>]*)id="' + id + '"([^>]*)>');
+  const m  = re.exec(html);
+  if (!m) return html;
+  const tagEnd  = m.index + m[0].length;
+  const closeIdx = html.indexOf('</section>', tagEnd);
+  if (closeIdx === -1) return html;
+  return html.substring(0, tagEnd) + newContent + html.substring(closeIdx);
+}
+
+/* .hero-inner 안의 텍스트 div를 교체하고 프로필 <img>는 보존 */
+function replaceHeroText(html) {
+  const marker   = 'class="hero-inner">';
+  const heroPos  = html.indexOf(marker);
+  if (heroPos === -1) return html;
+  const contentStart = heroPos + marker.length;
+
+  /* hero 안의 첫 <img = 프로필 사진 위치 */
+  const nextSection = html.indexOf('<section', contentStart);
+  const limit       = nextSection !== -1 ? nextSection : contentStart + 60000;
+  const imgPos      = html.indexOf('<img ', contentStart);
+  if (imgPos === -1 || imgPos > limit) return html;
+
+  return html.substring(0, contentStart) + '\n' + genHeroText() + '\n    ' + html.substring(imgPos);
+}
+
+/* 기존 index.html에서 모달 HTML + 원본 스크립트 블록을 추출 */
+function extractExistingModals(html) {
+  const marker = '<!-- MODALS -->';
+  const midx = html.indexOf(marker);
+  if (midx === -1) return { modals: {}, script: '' };
+  const bidx = html.lastIndexOf('</body>');
+  const section = html.substring(midx + marker.length, bidx);
+
+  // 원본 <script> 블록 통째로 보존 (슬라이드쇼·게이지 함수 + openModal 등)
+  const scriptStart = section.lastIndexOf('<script>');
+  const originalScript = scriptStart !== -1 ? section.substring(scriptStart) : '';
+
+  // 모달 div들을 카드 ID 기준으로 추출 (script 블록 제외)
+  const modalsSection = scriptStart !== -1 ? section.substring(0, scriptStart) : section;
+  const modals = {};
+  const parts = modalsSection.split('<div class="modal-overlay"');
+  for (let i = 1; i < parts.length; i++) {
+    const chunk = ('<div class="modal-overlay"' + parts[i]).trim();
+    const idM = /id="modal-([^"]+)"/.exec(chunk);
+    if (idM) modals[idM[1]] = chunk;
+  }
+  return { modals, script: originalScript };
+}
+
+function applyChanges(html) {
+  /* ① 원본 모달 HTML + 슬라이드쇼 스크립트 먼저 추출 */
+  const { modals: existingModals, script: originalScript } = extractExistingModals(html);
+
+  /* ② 각 섹션 순수 문자열 교체 */
+  html = replaceSectionContent(html, 'career',    genCareer());
+  html = replaceSectionContent(html, 'skills',    genSkills());
+  html = replaceSectionContent(html, 'education', genEducation());
+  html = replaceSectionContent(html, 'projects',  genProjects());
+  html = replaceSectionContent(html, 'publications', genPublications());
+
+  /* ③ Hero 텍스트 교체 (프로필 사진 보존) */
+  html = replaceHeroText(html);
+
+  /* ④ 모달 교체 — 기존 HTML 보존, 원본 스크립트도 보존, 새 카드만 생성 */
+  const midx = html.indexOf('<!-- MODALS -->');
+  const bidx = html.lastIndexOf('</body>');
+  if (midx !== -1 && bidx !== -1 && midx < bidx) {
+    html = html.substring(0, midx) + '<!-- MODALS -->\n' + genModalsPreserving(existingModals, originalScript) + '\n' + html.substring(bidx);
+  }
+
+  return html;
+}
+
+/* 기존 모달 HTML은 그대로 보존, 새 카드만 admin 데이터로 생성
+   originalScript: 원본 슬라이드쇼·게이지 함수 포함 <script> 블록 */
+function genModalsPreserving(existingModals, originalScript) {
+  const allCards = D.projects.flatMap(grp => grp.cards);
+  const pubItems = D.publications || [];
+
+  const projectModals = allCards.map(card => {
+    if (existingModals[card.id]) {
+      /* 기존 모달 그대로 사용 (이미지·상세내용·슬라이드쇼 유지) */
+      return existingModals[card.id];
+    }
+    /* 새로 추가된 카드: admin 데이터로 생성 */
+    return genSingleModal(card);
+  });
+
+  const pubModals = pubItems.map(pub => {
+    if (existingModals[pub.id]) return existingModals[pub.id];
+    return genSinglePublicationModal(pub);
+  });
+
+  const modals = projectModals.concat(pubModals).join('\n\n');
+
+  // 원본 스크립트(슬라이드쇼 함수 포함)가 있으면 그대로 사용,
+  // 없으면 openModal만 있는 최소 스크립트 사용
+  const script = originalScript || genModalScript();
+  return modals + '\n' + script;
+}
+
+/* 단일 모달 HTML 생성 (새 카드용) */
+function genSingleModal(card) {
+  const modal = card.modal || {period:'', blocks:[]};
+  const tags = card.tags.map(t => `      <span class="tag tag-${t.color}">${e(t.text)}</span>`).join('\n');
+  const content = (modal.blocks||[]).map(blk => genBlock(blk)).join('\n');
+  return `<div class="modal-overlay" id="modal-${card.id}" onclick="closeModal(event,'${card.id}')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalDirect('${card.id}')">✕</button>
+    <h2>${e(card.title)}</h2>
+    <div class="modal-period">${e(modal.period||'')}</div>
+    <div class="project-tags" style="margin-bottom:1.2rem">
+${tags}
+    </div>
+    ${content}
+  </div>
+</div>`;
+}
+
+function genHeroText() {
+  const h = D.hero;
+  const badges = h.badges.map(b => `        <span class="badge badge-${b.color}">${e(b.text)}</span>`).join('\n');
+  const paras = h.quoteParagraphs.map(p => `        <p>${e(p)}</p>`).join('\n');
+  return `
+    <div>
+      <h1>안녕하세요,<br /><span>${e(h.name)}</span>입니다.</h1>
+      <p class="hero-sub">${e(h.subtitle)}</p>
+      <div class="hero-badges">\n${badges}\n      </div>
+      <div class="hero-quote">
+        <strong>${e(h.quoteTitle)}</strong>\n${paras}
+      </div>
+    </div>`;
+}
+
+function genCareer() {
+  const blocks = D.career.map(blk => {
+    const items = blk.items.map(item => {
+      const badge = item.badge === 'new'
+        ? '\n          <span class="new-badge">데이터 분석 시작!</span>'
+        : item.badge === 'data'
+        ? '\n          <span class="data-badge">데이터 분석 맛보기</span>'
+        : '';
+      const detail = item.detail ? `\n        <div class="career-item-detail">${e(item.detail)}</div>` : '';
+      return `\n      <div class="career-item"><div class="career-item-title">${e(item.title)} <span class="year">(${e(item.year)})</span>${badge}</div>${detail}</div>`;
+    }).join('');
+    return `\n    <div class="career-block"><div class="career-org">${e(blk.org)}</div><div class="career-period">${e(blk.period)}</div>${items}\n    </div>`;
+  }).join('');
+  return `\n  <div class="section-inner"><div class="section-title">💼 경력</div>${blocks}\n  </div>`;
+}
+
+function genSkills() {
+  const gauges = D.skills.gauges.map(g => {
+    const lvStyle = g.isLearning ? ` style="color:#f59e0b;"` : '';
+    const fillStyle = g.isLearning ? ` style="background:linear-gradient(90deg,#f59e0b,#fcd34d);"` : '';
+    return `\n        <div class="skill-gauge-item"><div class="skill-gauge-header"><span class="skill-gauge-name">${e(g.name)}</span><span class="skill-gauge-level"${lvStyle}>${e(g.level)}</span></div><div class="skill-gauge-desc">${e(g.desc)}</div><div class="gauge-track"><div class="gauge-fill" data-width="${g.width}"${fillStyle}></div></div></div>`;
+  }).join('');
+  const toolGroups = D.skills.toolGroups.map(grp => {
+    const tools = grp.tools.map(t => `<span class="tool-tag ${grp.type}">${e(t)}</span>`).join(' ');
+    return `\n          <div style="margin-bottom:0.85rem;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.06em;color:#5badd4;margin-bottom:0.45rem;">${e(grp.label)}</div><div style="display:flex;flex-wrap:wrap;gap:0.45rem;">${tools}</div></div>`;
+  }).join('');
+  const certs = D.skills.certs.map(c => `\n          <div class="cert-item"><div class="cert-icon">${e(c.icon)}</div><div><div class="cert-name">${e(c.name)}</div><div class="cert-sub">${e(c.sub)}</div></div></div>`).join('');
+  return `\n  <div class="section-inner"><div class="section-title">🛠 스킬 · 자격</div><div class="skills-layout"><div><div class="skills-col-title">💻 기술 스킬</div>${gauges}<div style="margin-top:1.8rem;"><div class="skills-col-title">🔧 활용 툴</div>${toolGroups}</div></div><div><div class="skills-col-title">📜 자격증</div><div class="cert-list">${certs}</div></div></div></div>`;
+}
+
+function genEducation() {
+  const blocks = D.education.map(edu => `\n    <div class="edu-block"><div class="edu-icon">${e(edu.icon)}</div><div><div class="edu-school">${e(edu.school)}</div><div class="edu-major">${e(edu.major)}</div><div class="edu-detail">${e(edu.detail)}</div></div></div>`).join('');
+  return `\n  <div class="section-inner"><div class="section-title">🎓 학력</div>${blocks}\n  </div>`;
+}
+
+function genProjects() {
+  const groups = D.projects.map(grp => {
+    const cards = grp.cards.map(card => {
+      const tags = card.tags.map(t => `            <span class="tag tag-${t.color}">${e(t.text)}</span>`).join('\n');
+      const thumb = `<div class="project-thumb">${e(card.emoji)}</div>`;
+      return `\n      <div class="project-card" onclick="openModal('${card.id}')">${thumb}<div class="project-info"><div class="project-title">${e(card.title)}</div><div class="project-tags">\n${tags}\n          </div></div></div>`;
+    }).join('');
+    return `\n    <div class="projects-year">${e(grp.topic)}</div><div class="projects-grid">${cards}\n    </div>`;
+  }).join('');
+  return `\n  <div class="section-inner"><div class="section-title">🌟 프로젝트</div>${groups}\n  </div>`;
+}
+
+function genPublications() {
+  const cards = (D.publications||[]).map(pub => {
+    const thumb = pub.thumb
+      ? `<img class="publication-thumb" src="${pub.thumb}" alt="${e(pub.title)}">`
+      : `<div class="publication-thumb publication-thumb-empty">📚</div>`;
+    const year = pub.year ? `<div class="publication-year">${e(pub.year)}</div>` : '';
+    return `\n      <div class="publication-card" onclick="openModal('${pub.id}')">${thumb}<div class="publication-info">${year}<div class="publication-title">${e(pub.title)}</div></div></div>`;
+  }).join('');
+  return `\n  <div class="section-inner"><div class="section-title">📚 발간물</div><div class="publications-grid">${cards}\n    </div>\n  </div>`;
+}
+
+/* 발간물 단일 모달 HTML 생성 (새 항목용) */
+function genSinglePublicationModal(pub) {
+  const thumb = pub.thumb ? `<img src="${pub.thumb}" alt="${e(pub.title)}" style="max-width:100%;width:auto;height:auto;max-height:60vh;object-fit:contain;border-radius:12px;margin-bottom:1.4rem;display:block;margin-left:auto;margin-right:auto;background:#f1f5f9;">` : '';
+  const year = pub.year ? `<div class="modal-period">${e(pub.year)}</div>` : '';
+  const desc = pub.description ? `<p style="margin-bottom:1.4rem;line-height:1.75;color:#475569;white-space:pre-line;">${e(pub.description)}</p>` : '';
+  const link = pub.link ? `<a href="${e(pub.link)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.4rem;background:#eff6ff;color:#1d4ed8;padding:0.55rem 1.1rem;border-radius:8px;font-size:0.88rem;font-weight:600;text-decoration:none;border:1.5px solid #bfdbfe;">🔗 자세히 보기</a>` : '';
+  const pdf = pub.pdf ? `<a href="${pub.pdf}" target="_blank" rel="noopener" download="${e(pub.pdfName||pub.title||'document')+'.pdf'}" style="display:inline-flex;align-items:center;gap:0.4rem;background:#fef2f2;color:#b91c1c;padding:0.55rem 1.1rem;border-radius:8px;font-size:0.88rem;font-weight:600;text-decoration:none;border:1.5px solid #fecaca;">📄 PDF 보기</a>` : '';
+  const actions = (link || pdf) ? `<div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.4rem;">${link}${pdf}</div>` : '';
+  return `<div class="modal-overlay" id="modal-${pub.id}" onclick="closeModal(event,'${pub.id}')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalDirect('${pub.id}')">✕</button>
+    ${thumb}
+    <h2>${e(pub.title)}</h2>
+    ${year}
+    ${desc}
+    ${actions}
+  </div>
+</div>`;
+}
+
+function genModalScript() {
+  return `<script>
+function openModal(id) {
+  var el = document.getElementById('modal-' + id);
+  if (!el) return;
+  el.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(event, id) {
+  if (event.target === event.currentTarget) closeModalDirect(id);
+}
+function closeModalDirect(id) {
+  var el = document.getElementById('modal-' + id);
+  if (el) el.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(function(el) {
+      el.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  }
+});
+<\/script>`;
+}
+
+/* 하위 호환 — admin 데이터만 있을 때(기존 파일 없이 내보낼 때) 사용 */
+function genModals() {
+  const modalDivs = D.projects.flatMap(grp => grp.cards).map(card => genSingleModal(card)).join('\n\n');
+  return modalDivs + '\n' + genModalScript();
+}
+
+function genBlock(blk) {
+  if (blk.type === 'subtitle') {
+    return `    <p style="font-weight:700;font-size:0.95rem;margin-bottom:0.6rem;color:var(--primary)">${e(blk.text||'')}</p>`;
+  }
+  if (blk.type === 'paragraph') {
+    return `    <p style="margin-bottom:1rem;line-height:1.75;color:#475569;">${e(blk.text||'')}</p>`;
+  }
+  if (blk.type === 'bullets') {
+    const items = (blk.items||[]).map(it => `      <li>${e(it)}</li>`).join('\n');
+    return `    <ul style="margin-bottom:1.4rem;padding-left:1.4rem;line-height:1.9;color:#475569;">\n${items}\n    </ul>`;
+  }
+  if (blk.type === 'image') {
+    const capHtml = blk.caption ? `<p style="font-size:0.78rem;color:#94a3b8;margin-top:0.5rem;text-align:center;">${e(blk.caption)}</p>` : '';
+    return `    <div style="background:#f1f5f9;border-radius:12px;overflow:hidden;margin-bottom:1.4rem;text-align:center;">
+      ${blk.src ? `<img src="${blk.src}" style="max-width:100%;height:auto;display:block;margin:0 auto;" alt="${e(blk.caption||'')}">` : ''}
+      ${capHtml}
+    </div>`;
+  }
+  if (blk.type === 'carousel') {
+    const imgs = blk.images || [];
+    if (imgs.length === 0) return '';
+    const uid = 'cs-' + Math.random().toString(36).slice(2,7);
+    const slides = imgs.map((img, ii) => {
+      const cap = img.caption ? `<p style="font-size:0.78rem;color:#94a3b8;text-align:center;padding:0.4rem 0.8rem;">${e(img.caption)}</p>` : '';
+      return `<div style="min-width:100%;"><img src="${img.src}" style="width:100%;height:auto;display:block;" alt="${e(img.caption||'')}">` + cap + `</div>`;
+    }).join('\n');
+    const btnStyle = `position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.15);`;
+    const counter = imgs.length > 1 ? `<div id="${uid}-cnt" style="text-align:center;font-size:0.75rem;color:#94a3b8;padding:0.3rem;">1 / ${imgs.length}</div>` : '';
+    const btns = imgs.length > 1 ? `
+      <button onclick="(function(){var c=document.getElementById('${uid}'),s=parseInt(c.dataset.i||0)-1;if(s<0)s=${imgs.length-1};c.dataset.i=s;c.querySelector('[data-ci]').style.transform='translateX(-'+(s*100)+'%)';var ct=document.getElementById('${uid}-cnt');if(ct)ct.textContent=(s+1)+' / ${imgs.length}';})()" style="${btnStyle}left:6px;">‹</button>
+      <button onclick="(function(){var c=document.getElementById('${uid}'),s=parseInt(c.dataset.i||0)+1;if(s>=${imgs.length})s=0;c.dataset.i=s;c.querySelector('[data-ci]').style.transform='translateX(-'+(s*100)+'%)';var ct=document.getElementById('${uid}-cnt');if(ct)ct.textContent=(s+1)+' / ${imgs.length}';})()" style="${btnStyle}right:6px;">›</button>` : '';
+    return `    <div id="${uid}" data-i="0" style="position:relative;background:#f1f5f9;border-radius:12px;overflow:hidden;margin-bottom:1.4rem;">
+      <div style="overflow:hidden;border-radius:12px 12px 0 0;">
+        <div data-ci style="display:flex;transition:transform .4s ease;">${slides}</div>
+      </div>
+      ${btns}
+      ${counter}
+    </div>`;
+  }
+  if (blk.type === 'link') {
+    return `    <div style="margin-bottom:1rem;"><a href="${e(blk.href||'#')}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.4rem;background:#eff6ff;color:#1d4ed8;padding:0.55rem 1.1rem;border-radius:8px;font-size:0.88rem;font-weight:600;text-decoration:none;border:1.5px solid #bfdbfe;">${e(blk.text||blk.href||'링크')}</a></div>`;
+  }
+  return '';
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function swap(arr, i, j) {
+  if (j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+loadFromLocal();
+render();
+</script>
+</body>
+</html>
