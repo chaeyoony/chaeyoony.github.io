@@ -839,9 +839,28 @@
   fills.forEach(function(el) { observer.observe(el); });
 
   function openModal(id) {
-    document.getElementById('modal-' + id).classList.add('open');
+    var modal = document.getElementById('modal-' + id);
+    modal.classList.add('open');
     document.body.style.overflow = 'hidden';
+    // GA4: 모달 열림 추적
+    if (typeof gtag === 'function') {
+      var h2 = modal.querySelector('h2');
+      gtag('event', 'modal_open', {
+        modal_title: h2 ? h2.textContent.trim() : id,
+        modal_type: String(id).indexOf('pub-') === 0 ? 'publication' : 'project'
+      });
+    }
   }
+  // GA4: 모달 안 링크 클릭 추적 (동적으로 만들어진 링크 포함)
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('.modal-overlay a[href]') : null;
+    if (!a || typeof gtag !== 'function') return;
+    var h2 = a.closest('.modal') && a.closest('.modal').querySelector('h2');
+    gtag('event', 'modal_link_click', {
+      modal_title: h2 ? h2.textContent.trim() : '',
+      link_url: a.href
+    });
+  });
   function closeModal(event, id) {
     if (event.target === event.currentTarget) {
       closeModalDirect(id);
